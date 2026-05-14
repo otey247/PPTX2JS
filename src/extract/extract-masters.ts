@@ -5,6 +5,7 @@
 import JSZip from "jszip";
 import { MasterModel, FillModel } from "../types";
 import { XML_PARSER } from "../ingest/read-pptx";
+import { normalizeTarget } from "../ingest/resolve-slides";
 import { normalizeColor, resolveThemeColor } from "../normalize/colors";
 
 function getAttr(obj: Record<string, unknown>, key: string): string | undefined {
@@ -88,11 +89,5 @@ export function getMasterPaths(
       const type = (r as Record<string, unknown>)["@_Type"] as string;
       return type?.endsWith("/slideMaster");
     })
-    .map((r) => {
-      const target = ((r as Record<string, unknown>)["@_Target"] as string).replace(
-        /^\.\.\//,
-        "ppt/"
-      );
-      return target.startsWith("ppt/") ? target : `ppt/${target}`;
-    });
+    .map((r) => normalizeTarget((r as Record<string, unknown>)["@_Target"] as string));
 }

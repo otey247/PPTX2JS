@@ -26,10 +26,12 @@ function extractColor(
     if (baseColor) {
       const lumMod = schemeClr["a:lumMod"] as Record<string, unknown> | undefined;
       const lumOff = schemeClr["a:lumOff"] as Record<string, unknown> | undefined;
+      const lumModVal = lumMod ? getAttr(lumMod, "val") : undefined;
+      const lumOffVal = lumOff ? getAttr(lumOff, "val") : undefined;
       baseColor = applyLumAdjust(
         baseColor,
-        lumMod ? Number(getAttr(lumMod, "val")) : undefined,
-        lumOff ? Number(getAttr(lumOff, "val")) : undefined
+        lumModVal !== undefined ? Number(lumModVal) : undefined,
+        lumOffVal !== undefined ? Number(lumOffVal) : undefined
       );
     }
     return baseColor;

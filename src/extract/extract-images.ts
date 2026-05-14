@@ -62,9 +62,7 @@ export async function extractImageElement(
 
   const blipFill = pic["p:blipFill"] as Record<string, unknown> | undefined;
   const blip = blipFill?.["a:blip"] as Record<string, unknown> | undefined;
-  const rEmbed = blip
-    ? (getAttr(blip, "r:embed") ?? getAttr(blip, "r_embed"))
-    : undefined;
+  const rEmbed = blip ? getAttr(blip, "r:embed") : undefined;
 
   if (!rEmbed) return { type: "image", x, y, w, h, rotation, altText };
 

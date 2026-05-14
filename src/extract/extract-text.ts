@@ -42,10 +42,12 @@ function extractColor(
     if (baseColor) {
       const lumMod = (schemeClr["a:lumMod"] as Record<string, unknown> | undefined);
       const lumOff = (schemeClr["a:lumOff"] as Record<string, unknown> | undefined);
+      const lumModVal = lumMod ? getAttr(lumMod, "val") : undefined;
+      const lumOffVal = lumOff ? getAttr(lumOff, "val") : undefined;
       baseColor = applyLumAdjust(
         baseColor,
-        lumMod ? Number(getAttr(lumMod, "val")) : undefined,
-        lumOff ? Number(getAttr(lumOff, "val")) : undefined
+        lumModVal !== undefined ? Number(lumModVal) : undefined,
+        lumOffVal !== undefined ? Number(lumOffVal) : undefined
       );
     }
     return baseColor;
@@ -90,6 +92,7 @@ function extractLine(
 function extractTextRuns(
   txBody: Record<string, unknown>,
   themeColorMap: Record<string, string>,
+  hyperlinkUrls: Map<string, string>,
   majorFont?: string,
   minorFont?: string
 ): TextRunModel[] {
@@ -102,27 +105,11 @@ function extractTextRuns(
   for (let pIdx = 0; pIdx < paras.length; pIdx++) {
     const para = paras[pIdx] as Record<string, unknown>;
 
-    // Paragraph-level run properties (pPr)
     const pPr = para["a:pPr"] as Record<string, unknown> | undefined;
-    const paraAlign = pPr ? getAttr(pPr, "algn") : undefined;
 
     const runNodes = para["a:r"];
     const breakNodes = para["a:br"];
 
-    // Build a mixed list of runs and line breaks in order
-    const children: Array<{ kind: "r" | "br"; node: Record<string, unknown> }> = [];
-
-    if (runNodes) {
-      const rs = Array.isArray(runNodes) ? runNodes : [runNodes];
-      rs.forEach((r) => children.push({ kind: "r", node: r as Record<string, unknown> }));
-    }
-    if (breakNodes) {
-      const brs = Array.isArray(breakNodes) ? breakNodes : [breakNodes];
-      brs.forEach((b) => children.push({ kind: "br", node: b as Record<string, unknown> }));
-    }
-
-    // Sort by source order is not possible without position info, so interleave
-    // by assuming paragraphs have sequential runs then breaks
     const rNodes = runNodes
       ? Array.isArray(runNodes)
         ? runNodes
@@ -168,14 +155,18 @@ function extractTextRuns(
 
         const hlinkClick = rPr["a:hlinkClick"] as Record<string, unknown> | undefined;
         if (hlinkClick) {
-          run.hyperlink = getAttr(hlinkClick, "r:id");
+          // Resolve the r:id relationship to the actual URL
+          const rId = getAttr(hlinkClick, "r:id");
+          if (rId) {
+            run.hyperlink = hyperlinkUrls.get(rId) ?? rId;
+          }
         }
       }
 
       runs.push(run);
     }
 
-    // Add line breaks
+    // Set breakLine on the last run of each paragraph where a:br elements are present
     for (const _br of brNodes) {
       if (runs.length > 0) {
         runs[runs.length - 1].breakLine = true;
@@ -222,6 +213,7 @@ function extractTransform(
 export function extractTextElement(
   sp: Record<string, unknown>,
   themeColorMap: Record<string, string>,
+  hyperlinkUrls: Map<string, string>,
   majorFont?: string,
   minorFont?: string
 ): TextElement | null {
@@ -232,7 +224,7 @@ export function extractTextElement(
   if (!spPr) return null;
 
   const transform = extractTransform(spPr);
-  const textRuns = extractTextRuns(txBody, themeColorMap, majorFont, minorFont);
+  const textRuns = extractTextRuns(txBody, themeColorMap, hyperlinkUrls, majorFont, minorFont);
   const fill = extractFill(spPr, themeColorMap);
   const line = extractLine(spPr, themeColorMap);
 

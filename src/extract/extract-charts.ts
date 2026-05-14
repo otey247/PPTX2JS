@@ -4,6 +4,7 @@
 
 import JSZip from "jszip";
 import { ChartElement, ChartDataSeries } from "../types";
+import { normalizeTarget } from "../ingest/resolve-slides";
 import { emuToInches } from "../normalize/units";
 import { XML_PARSER } from "../ingest/read-pptx";
 
@@ -105,7 +106,7 @@ export function getChartRelPath(
   const chart = graphicData?.["c:chart"] as Record<string, unknown> | undefined;
   if (!chart) return null;
 
-  const rId = getAttr(chart, "r:id") ?? getAttr(chart, "r_id");
+  const rId = getAttr(chart, "r:id");
   if (!rId) return null;
 
   const relsObj = slideRels["Relationships"] as Record<string, unknown> | undefined;
@@ -118,8 +119,7 @@ export function getChartRelPath(
   ) as Record<string, unknown> | undefined;
   if (!rel) return null;
 
-  const target = (rel["@_Target"] as string).replace(/^\.\.\//, "ppt/");
-  return target.startsWith("ppt/") ? target : `ppt/${target}`;
+  return normalizeTarget(rel["@_Target"] as string);
 }
 
 /**

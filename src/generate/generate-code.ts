@@ -86,7 +86,7 @@ function elementToCode(el: SlideElement, slideVar: string): string {
       if (el.rotation !== undefined) opts.push(`rotate: ${el.rotation}`);
       if (el.altText) opts.push(`altText: "${escapeStr(el.altText)}"`);
       const dataProp = el.dataUri
-        ? `data: "/* base64 image data */"`
+        ? `data: \`${el.dataUri}\``
         : `path: "${escapeStr(el.path ?? "")}"`;
       return `${slideVar}.addImage({ ${dataProp}, ${opts.join(", ")} });`;
     }

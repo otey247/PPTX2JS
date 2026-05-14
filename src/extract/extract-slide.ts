@@ -8,9 +8,8 @@ import {
   SlideModel,
   SlideElement,
   FillModel,
-  UnsupportedElement,
+  type UnsupportedElement,
 } from "../types";
-import { emuToInches } from "../normalize/units";
 import { normalizeColor, resolveThemeColor } from "../normalize/colors";
 import { extractTextElement } from "./extract-text";
 import { extractShapeElement, extractConnectorElement } from "./extract-shapes";
@@ -61,6 +60,7 @@ async function extractSpTree(
   zip: JSZip,
   slideRels: Record<string, unknown> | null,
   imagePaths: Map<string, string>,
+  hyperlinkUrls: Map<string, string>,
   themeColorMap: Record<string, string>,
   majorFont?: string,
   minorFont?: string
@@ -72,15 +72,34 @@ async function extractSpTree(
   if (spNodes) {
     const sps = Array.isArray(spNodes) ? spNodes : [spNodes];
     for (const sp of sps as Array<Record<string, unknown>>) {
-      // Try shape first (has prstGeom), then text
+      // Prefer text extraction when the shape is a plain rect (the default text box
+      // preset) AND has a text body — those elements have richer text properties
+      // (valign, margin, align, placeholder) that would be lost in the shape branch.
+      const spPr = sp["p:spPr"] as Record<string, unknown> | undefined;
+      const prstGeom = spPr?.["a:prstGeom"] as Record<string, unknown> | undefined;
+      const prst = prstGeom ? (prstGeom["@_prst"] as string | undefined) : undefined;
+      const hasTxBody = !!sp["p:txBody"];
+      const isRectOrNoGeom = !prstGeom || prst === "rect";
+
+      if (hasTxBody && isRectOrNoGeom) {
+        const text = extractTextElement(sp, themeColorMap, hyperlinkUrls, majorFont, minorFont);
+        if (text) {
+          elements.push(text);
+          continue;
+        }
+      }
+
+      // Try shape extraction (non-rect geometry or no text body)
       const shape = extractShapeElement(sp, themeColorMap, majorFont, minorFont);
       if (shape) {
         elements.push(shape);
         continue;
       }
-      const text = extractTextElement(sp, themeColorMap, majorFont, minorFont);
-      if (text) {
-        elements.push(text);
+
+      // Fallback: try text extraction for any remaining p:sp with a text body
+      if (hasTxBody) {
+        const text = extractTextElement(sp, themeColorMap, hyperlinkUrls, majorFont, minorFont);
+        if (text) elements.push(text);
       }
     }
   }
@@ -164,6 +183,7 @@ async function extractSpTree(
         zip,
         slideRels,
         imagePaths,
+        hyperlinkUrls,
         themeColorMap,
         majorFont,
         minorFont
@@ -212,7 +232,7 @@ export async function extractSlide(
 
   // Load slide relationships
   const slideRels = await loadRels(zip, slidePath);
-  const { notesPath, imagePaths } = resolveSlideRelationships(slideRels);
+  const { notesPath, imagePaths, hyperlinkUrls } = resolveSlideRelationships(slideRels);
 
   const cSld = sld["p:cSld"] as Record<string, unknown> | undefined;
   const spTree = cSld?.["p:spTree"] as Record<string, unknown> | undefined;
@@ -225,6 +245,7 @@ export async function extractSlide(
         zip,
         slideRels,
         imagePaths,
+        hyperlinkUrls,
         themeColorMap,
         majorFont,
         minorFont

@@ -1,6 +1,7 @@
 import { extractTextElement } from "../extract/extract-text";
 
 const themeColorMap = { accent1: "4472C4" };
+const emptyHyperlinkUrls = new Map<string, string>();
 
 function makeSpNode(opts: {
   x?: number;
@@ -59,7 +60,7 @@ function makeSpNode(opts: {
 describe("extractTextElement", () => {
   test("extracts basic text element", () => {
     const sp = makeSpNode({ text: "Hello World", x: 1, y: 2, w: 5, h: 1.5 });
-    const el = extractTextElement(sp, themeColorMap);
+    const el = extractTextElement(sp, themeColorMap, emptyHyperlinkUrls);
     expect(el).not.toBeNull();
     expect(el!.type).toBe("text");
     expect(el!.x).toBeCloseTo(1);
@@ -71,32 +72,32 @@ describe("extractTextElement", () => {
 
   test("extracts bold text", () => {
     const sp = makeSpNode({ text: "Bold", bold: true });
-    const el = extractTextElement(sp, themeColorMap);
+    const el = extractTextElement(sp, themeColorMap, emptyHyperlinkUrls);
     expect(el!.textRuns[0].bold).toBe(true);
   });
 
   test("extracts italic text", () => {
     const sp = makeSpNode({ text: "Italic", italic: true });
-    const el = extractTextElement(sp, themeColorMap);
+    const el = extractTextElement(sp, themeColorMap, emptyHyperlinkUrls);
     expect(el!.textRuns[0].italic).toBe(true);
   });
 
   test("extracts font size in points", () => {
     // sz=2400 → 24pt
     const sp = makeSpNode({ fontSize: 24 });
-    const el = extractTextElement(sp, themeColorMap);
+    const el = extractTextElement(sp, themeColorMap, emptyHyperlinkUrls);
     expect(el!.textRuns[0].fontSize).toBe(24);
   });
 
   test("extracts color", () => {
     const sp = makeSpNode({ color: "FF0000" });
-    const el = extractTextElement(sp, themeColorMap);
+    const el = extractTextElement(sp, themeColorMap, emptyHyperlinkUrls);
     expect(el!.textRuns[0].color).toBe("FF0000");
   });
 
   test("returns null when no txBody", () => {
     const sp = { "p:spPr": { "a:xfrm": {} } };
-    const el = extractTextElement(sp, themeColorMap);
+    const el = extractTextElement(sp, themeColorMap, emptyHyperlinkUrls);
     expect(el).toBeNull();
   });
 });
