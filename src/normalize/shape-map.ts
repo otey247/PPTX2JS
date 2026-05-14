@@ -43,7 +43,6 @@ export const SUPPORTED_SHAPES = new Set([
   "ribbon",
   "ribbon2",
   "chevron",
-  "pentagon",
   "notchedRightArrow",
   "homePlate",
   "leftArrow",

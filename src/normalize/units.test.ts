@@ -1,4 +1,4 @@
-import { emuToInches, emuToPt, halfPtToPt, inchesToEmu, EMU_PER_INCH } from "../normalize/units";
+import { emuToInches, emuToPt, ooxmlSzToPt, inchesToEmu, EMU_PER_INCH } from "../normalize/units";
 
 describe("units", () => {
   test("emuToInches converts correctly", () => {
@@ -14,10 +14,10 @@ describe("units", () => {
     expect(emuToPt(0)).toBe(0);
   });
 
-  test("halfPtToPt converts correctly", () => {
+  test("ooxmlSzToPt converts correctly", () => {
     // 2400 hundredths-of-a-point = 24pt
-    expect(halfPtToPt(2400)).toBe(24);
-    expect(halfPtToPt(1200)).toBe(12);
+    expect(ooxmlSzToPt(2400)).toBe(24);
+    expect(ooxmlSzToPt(1200)).toBe(12);
   });
 
   test("inchesToEmu converts correctly", () => {

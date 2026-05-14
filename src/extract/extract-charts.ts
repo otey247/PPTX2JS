@@ -51,7 +51,7 @@ function extractStringValues(catNode: Record<string, unknown>): string[] {
 
 function extractSeriesData(chartData: Record<string, unknown>): ChartDataSeries[] {
   for (const [key, value] of Object.entries(CHART_TYPE_MAP)) {
-    const chartTypeNode = chartData[key.replace("c:", "c:")] as
+    const chartTypeNode = chartData[key] as
       | Record<string, unknown>
       | undefined;
     if (!chartTypeNode) continue;

@@ -3,7 +3,7 @@
  */
 
 import { TableElement, TableCellModel } from "../types";
-import { emuToInches, halfPtToPt } from "../normalize/units";
+import { emuToInches, ooxmlSzToPt } from "../normalize/units";
 import { normalizeColor, resolveThemeColor } from "../normalize/colors";
 
 function getAttr(obj: Record<string, unknown>, key: string): string | undefined {
@@ -65,7 +65,7 @@ function extractCell(
           if (getAttr(rPr, "b") === "1" || getAttr(rPr, "b") === "true") bold = true;
           if (getAttr(rPr, "i") === "1" || getAttr(rPr, "i") === "true") italic = true;
           const sz = getAttr(rPr, "sz");
-          if (sz && fontSize === undefined) fontSize = halfPtToPt(sz);
+          if (sz && fontSize === undefined) fontSize = ooxmlSzToPt(sz);
 
           const solidFill = rPr["a:solidFill"] as Record<string, unknown> | undefined;
           if (solidFill && color === undefined) {

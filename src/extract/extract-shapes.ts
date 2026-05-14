@@ -3,7 +3,7 @@
  */
 
 import { ShapeElement, TextRunModel, FillModel, LineModel } from "../types";
-import { emuToInches, halfPtToPt } from "../normalize/units";
+import { emuToInches, ooxmlSzToPt } from "../normalize/units";
 import { normalizeColor, resolveThemeColor, applyLumAdjust } from "../normalize/colors";
 import { resolveFontFace } from "../normalize/fonts";
 import { normalizeShapeType } from "../normalize/shape-map";
@@ -132,7 +132,7 @@ function extractShapeTextRuns(
         if (getAttr(rPr, "i") === "1" || getAttr(rPr, "i") === "true") run.italic = true;
 
         const sz = getAttr(rPr, "sz");
-        if (sz) run.fontSize = halfPtToPt(sz);
+        if (sz) run.fontSize = ooxmlSzToPt(sz);
 
         const solidFill = rPr["a:solidFill"] as Record<string, unknown> | undefined;
         if (solidFill) run.color = extractColor(solidFill, themeColorMap);

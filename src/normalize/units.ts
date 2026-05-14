@@ -22,10 +22,11 @@ export function emuToPt(value: string | number): number {
 }
 
 /**
- * Convert half-points (OOXML font sizes) to points.
- * OOXML stores font sizes as hundredths of a point.
+ * Convert OOXML font size (hundredths of a point) to points.
+ * The OOXML `sz` attribute stores font sizes as hundredths of a point,
+ * so 2400 means 24pt.
  */
-export function halfPtToPt(value: string | number): number {
+export function ooxmlSzToPt(value: string | number): number {
   return Number(value) / 100;
 }
 

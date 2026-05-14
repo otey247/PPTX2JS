@@ -3,7 +3,7 @@
  */
 
 import { TextElement, TextRunModel, FillModel, LineModel } from "../types";
-import { emuToInches, halfPtToPt } from "../normalize/units";
+import { emuToInches, ooxmlSzToPt } from "../normalize/units";
 import { normalizeColor, resolveThemeColor, applyLumAdjust } from "../normalize/colors";
 import { resolveFontFace } from "../normalize/fonts";
 
@@ -152,7 +152,7 @@ function extractTextRuns(
           run.strike = true;
 
         const sz = getAttr(rPr, "sz");
-        if (sz) run.fontSize = halfPtToPt(sz);
+        if (sz) run.fontSize = ooxmlSzToPt(sz);
 
         const solidFill = rPr["a:solidFill"] as Record<string, unknown> | undefined;
         if (solidFill) run.color = extractColor(solidFill, themeColorMap);
